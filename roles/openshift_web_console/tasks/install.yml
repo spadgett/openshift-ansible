@@ -83,6 +83,8 @@
         value: "{{ openshift_web_console_extension_stylesheet_urls | default([]) }}"
       - key: extensions#properties
         value: "{{ openshift_web_console_extension_properties | default({}) }}"
+      - key: servingInfo#bindAddress
+        value: "0.0.0.0:{{ openshift_master_console_port | default(8443) }}"
       separator: '#'
       state: present
     when: config_to_migrate.assetConfig is not defined
@@ -107,6 +109,8 @@
         value: "{{ config_to_migrate.assetConfig.servingInfo.requestTimeoutSeconds | default(0) }}"
       - key: features#clusterResourceOverridesEnabled
         value: "{{ openshift_web_console_cluster_resource_overrides_enabled | default(cro_plugin_enabled) }}"
+      - key: servingInfo#bindAddress
+        value: "0.0.0.0:{{ openshift_master_console_port | default(8443) }}"
       separator: '#'
       state: present
     when: config_to_migrate.assetConfig is defined
@@ -120,6 +124,14 @@
     {{ openshift_client_binary }} process -f "{{ mktemp.stdout }}/{{ __console_rbac_file }}" --config={{ mktemp.stdout }}/admin.kubeconfig
     | {{ openshift_client_binary }} auth reconcile --config={{ mktemp.stdout }}/admin.kubeconfig -f -
 
+- set_fact:
+    console_hostnetwork: "{{ (openshift_master_console_port | default(8443)) != (openshift_master_api_port | default(8443)) }}"
+
+- name: Add hostnetwork security context constraint to webconsole service account
+  shell: >
+    {{ openshift_client_binary }} adm policy add-scc-to-user hostnetwork system:serviceaccount:openshift-web-console:webconsole --config={{ mktemp.stdout }}/admin.kubeconfig
+  when: console_hostnetwork
+
 - name: Apply the web console template file
   shell: >
     {{ openshift_client_binary }} process -f "{{ mktemp.stdout }}/{{ __console_template_file }}"
@@ -127,6 +139,9 @@
     --param IMAGE="{{ openshift_web_console_prefix }}{{ openshift_web_console_image_name }}:{{ openshift_web_console_version }}"
     --param NODE_SELECTOR={{ openshift_web_console_nodeselector | to_json | quote }}
     --param REPLICA_COUNT="{{ openshift_web_console_replica_count }}"
+    --param CONTAINER_PORT="{{ openshift_master_console_port | default(8443) }}"
+    --param HOST_NETWORK="{{ console_hostnetwork | to_json }}"
+    --param SECURITY_CONTEXT={{ console_hostnetwork | ternary({ "hostnetwork": true }, {}) | to_json | quote }}
     --config={{ mktemp.stdout }}/admin.kubeconfig
     | {{ openshift_client_binary }} apply --config={{ mktemp.stdout }}/admin.kubeconfig -f -
 

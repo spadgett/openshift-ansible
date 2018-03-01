@@ -23,6 +23,12 @@ parameters:
   value: "{}"
 - name: REPLICA_COUNT
   value: "1"
+- name: CONTAINER_PORT
+  value: "8443"
+- name: HOST_NETWORK
+  value: "false"
+- name: SECURITY_CONTEXT
+  value: "{}"
 objects:
 
 # to create the web console server
@@ -45,6 +51,7 @@ objects:
           webconsole: "true"
       spec:
         serviceAccountName: webconsole
+        hostNetwork: "${{HOST_NETWORK}}"
         containers:
         - name: webconsole
           image: ${IMAGE}
@@ -55,7 +62,7 @@ objects:
           - "-v=${LOGLEVEL}"
           - "--config=/var/webconsole-config/webconsole-config.yaml"
           ports:
-          - containerPort: 8443
+          - containerPort: "${{CONTAINER_PORT}}"
           volumeMounts:
           - mountPath: /var/serving-cert
             name: serving-cert
@@ -64,7 +71,7 @@ objects:
           readinessProbe:
             httpGet:
               path: /healthz
-              port: 8443
+              port: "${{CONTAINER_PORT}}"
               scheme: HTTPS
           livenessProbe:
             exec:
@@ -77,11 +84,12 @@ objects:
                     md5sum /var/webconsole-config/webconsole-config.yaml > /tmp/webconsole-config.hash; \
                   elif [[ $(md5sum /var/webconsole-config/webconsole-config.yaml) != $(cat /tmp/webconsole-config.hash) ]]; then \
                     exit 1; \
-                  fi && curl -k -f https://0.0.0.0:8443/console/
+                  fi && curl -k -f https://0.0.0.0:${CONTAINER_PORT}/console/
           resources:
             requests:
               cpu: 100m
               memory: 100Mi
+          securityContext: "${{SECURITY_CONTEXT}}"
         nodeSelector: "${{NODE_SELECTOR}}"
         volumes:
         - name: serving-cert
@@ -131,4 +139,4 @@ objects:
     ports:
     - name: https
       port: 443
-      targetPort: 8443
+      targetPort: "${{CONTAINER_PORT}}"
