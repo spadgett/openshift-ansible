@@ -14,8 +14,7 @@ parameters:
   value: openshift/origin-console:latest
   required: true
 - name: NAMESPACE
-  # This namespace cannot be changed. Only `openshift-console` is supported.
-  value: openshift-console
+  value: console-test
   required: true
 - name: CONSOLE_HOSTNAME
   value: console.router.default.svc.cluster.local
@@ -207,7 +206,7 @@ objects:
 - apiVersion: oauth.openshift.io/v1
   kind: OAuthClient
   metadata:
-    name: openshift-console
+    name: openshift-console-test
   grantMethod: auto
   secret: ${OAUTH_SECRET}
   redirectURIs:

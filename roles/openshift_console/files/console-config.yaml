@@ -7,7 +7,7 @@ servingInfo:
 clusterInfo:
   consoleBaseAddress: ''
 auth:
-  clientID: openshift-console
+  clientID: openshift-console-test
   clientSecretFile: /var/oauth-config/clientSecret
 customization:
   branding: origin
