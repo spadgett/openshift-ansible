@@ -5,9 +5,10 @@ servingInfo:
   certFile: /var/serving-cert/tls.crt
   keyFile: /var/serving-cert/tls.key
 clusterInfo:
-  consoleBaseAddress: ''
+  consoleBaseAddress: https://console-test-two.apps.ui-preserve.origin-gce.dev.openshift.com
 auth:
-  clientID: openshift-console-test
+  clientID: openshift-console-test-2
   clientSecretFile: /var/oauth-config/clientSecret
+  oauthEndpointCAFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 customization:
   branding: origin
