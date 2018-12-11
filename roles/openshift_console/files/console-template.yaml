@@ -14,10 +14,10 @@ parameters:
   value: openshift/origin-console:latest
   required: true
 - name: NAMESPACE
-  value: console-test-2
+  value: console-test
   required: true
 - name: CONSOLE_HOSTNAME
-  value: console-test-two.apps.ui-preserve.origin-gce.dev.openshift.com
+  value: console-test.apps.ui-preserve.origin-gce.dev.openshift.com
   required: true
 - name: TLS_CERT
 - name: TLS_KEY
@@ -206,7 +206,7 @@ objects:
 - apiVersion: oauth.openshift.io/v1
   kind: OAuthClient
   metadata:
-    name: openshift-console-test-2
+    name: openshift-console-test
   grantMethod: auto
   secret: ${OAUTH_SECRET}
   redirectURIs:
